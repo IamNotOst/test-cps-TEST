@@ -1,0 +1,304 @@
+<!DOCTYPE html><html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>CPS Tester</title>
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      touch-action: manipulation;
+      font-family: 'Segoe UI', sans-serif;
+    }:root {
+  --bg-dark: linear-gradient(to right, #1f1c2c, #928dab);
+  --bg-light: linear-gradient(to right, #f0f0f0, #dcdcdc);
+  --text-dark: white;
+  --text-light: #222;
+  --primary-dark: #e74c3c;
+  --primary-light: #3498db;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: var(--bg-dark);
+  color: var(--text-dark);
+  transition: background 0.5s, color 0.5s;
+}
+
+body.light {
+  background: var(--bg-light);
+  color: var(--text-light);
+}
+
+.container {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+  transition: background 0.5s;
+}
+
+body.light .container {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+#timer {
+  font-size: 20px;
+  margin: 10px 0;
+}
+
+#clickBtn {
+  background-color: var(--primary-dark);
+  color: white;
+  font-size: 24px;
+  padding: 20px 40px;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.3s;
+  user-select: none;
+}
+
+body.light #clickBtn {
+  background-color: var(--primary-light);
+}
+
+#clickBtn:hover {
+  filter: brightness(90%);
+}
+
+.switcher, .share-section {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.switcher input {
+  width: 100px;
+  padding: 10px;
+  font-size: 16px;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 18px;
+  white-space: pre-line;
+}
+
+#startBtn, #shareBtn, #topBtn {
+  margin-top: 20px;
+  background-color: #2980b9;
+  border: none;
+  color: white;
+  font-size: 18px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+body.light #startBtn, body.light #shareBtn, body.light #topBtn {
+  background-color: #2471a3;
+}
+
+#startBtn:hover, #shareBtn:hover, #topBtn:hover {
+  filter: brightness(90%);
+}
+
+.top-bar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  color: inherit;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+
+.toggle:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button class="toggle" id="themeToggle">Светлая тема</button>
+    <button class="toggle" id="langToggle">English</button>
+  </div>  <div class="container">
+    <h1 id="title">Тест на CPS</h1>
+    <p id="timer">Выбери время и нажми "Начать"</p>
+    <button id="clickBtn" disabled>КЛИКАЙ!</button>
+    <p id="score">Клики: 0</p>
+    <p id="result"></p>
+    <button id="startBtn">Начать</button>
+    <div class="switcher">
+      <input type="number" id="timeInput" min="1" max="60" value="5" />
+    </div>
+    <div class="share-section">
+      <button id="shareBtn">Поделиться</button>
+      <button id="topBtn">Топ 10</button>
+    </div>
+  </div>  <script src="https://telegram.org/js/telegram-web-app.js"></script>  <script>
+    let score = 0;
+    let selectedTime = 5;
+    let timer;
+    let timeLeft;
+    let language = localStorage.getItem('cps-lang') || 'ru';
+    let isDark = localStorage.getItem('cps-theme') !== 'light';
+
+    const texts = {
+      ru: {
+        title: "Тест на CPS",
+        choose: 'Выбери время (1-60 сек) и нажми "Начать"',
+        clicks: "Клики",
+        start: "Начать",
+        click: "КЛИКАЙ!",
+        cps: "Твой CPS",
+        result: "Ты сделал {score} кликов за {time} сек.\nCPS: {cps}",
+        light: "Светлая тема",
+        dark: "Тёмная тема",
+        eng: "English",
+        rus: "Русский",
+        share: "Поделиться",
+        top: "Топ 10"
+      },
+      en: {
+        title: "CPS Test",
+        choose: 'Choose time (1-60 sec) and click "Start"',
+        clicks: "Clicks",
+        start: "Start",
+        click: "CLICK!",
+        cps: "Your CPS",
+        result: "You made {score} clicks in {time} sec.\nCPS: {cps}",
+        light: "Light Theme",
+        dark: "Dark Theme",
+        eng: "English",
+        rus: "Русский",
+        share: "Share",
+        top: "Top 10"
+      }
+    };
+
+    const timerDisplay = document.getElementById('timer');
+    const clickBtn = document.getElementById('clickBtn');
+    const scoreDisplay = document.getElementById('score');
+    const startBtn = document.getElementById('startBtn');
+    const resultDisplay = document.getElementById('result');
+    const title = document.getElementById('title');
+    const timeInput = document.getElementById('timeInput');
+    const themeToggle = document.getElementById('themeToggle');
+    const langToggle = document.getElementById('langToggle');
+    const shareBtn = document.getElementById('shareBtn');
+    const topBtn = document.getElementById('topBtn');
+
+    function setTexts() {
+      const t = texts[language];
+      title.textContent = t.title;
+      timerDisplay.textContent = t.choose;
+      clickBtn.textContent = t.click;
+      startBtn.textContent = t.start;
+      scoreDisplay.textContent = `${t.clicks}: 0`;
+      themeToggle.textContent = isDark ? t.light : t.dark;
+      langToggle.textContent = language === 'ru' ? t.eng : t.rus;
+      shareBtn.textContent = t.share;
+      topBtn.textContent = t.top;
+    }
+
+    function saveSettings() {
+      localStorage.setItem('cps-lang', language);
+      localStorage.setItem('cps-theme', isDark ? 'dark' : 'light');
+    }
+
+    clickBtn.addEventListener('click', () => {
+      score++;
+      scoreDisplay.textContent = `${texts[language].clicks}: ${score}`;
+    });
+
+    startBtn.addEventListener('click', () => {
+      selectedTime = Math.min(60, Math.max(1, parseInt(timeInput.value) || 1));
+      timeLeft = selectedTime;
+      score = 0;
+      clickBtn.disabled = false;
+      startBtn.disabled = true;
+      scoreDisplay.textContent = `${texts[language].clicks}: 0`;
+      resultDisplay.textContent = '';
+      timerDisplay.textContent = `${texts[language].choose} (${timeLeft}s)`;
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = `${texts[language].choose} (${timeLeft}s)`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          clickBtn.disabled = true;
+          startBtn.disabled = false;
+          const cps = (score / selectedTime).toFixed(3);
+          resultDisplay.textContent = texts[language].result
+            .replace('{score}', score)
+            .replace('{time}', selectedTime)
+            .replace('{cps}', cps);
+
+          Telegram.WebApp.showPopup({
+            title: texts[language].cps,
+            message: resultDisplay.textContent,
+            buttons: [{ id: 'ok', type: 'default', text: 'OK' }]
+          });
+        }
+      }, 1000);
+    });
+
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      isDark = !isDark;
+      setTexts();
+      saveSettings();
+    });
+
+    langToggle.addEventListener('click', () => {
+      language = language === 'ru' ? 'en' : 'ru';
+      setTexts();
+      saveSettings();
+    });
+
+    shareBtn.addEventListener('click', () => {
+      const cps = (score / selectedTime).toFixed(3);
+      Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=https://t.me/TestCpsRobot/Start&text=Мой CPS: ${cps}`);
+    });
+
+    topBtn.addEventListener('click', () => {
+      Telegram.WebApp.openTelegramLink('https://t.me/TestCpsRobot/Top10');
+    });
+
+    if (!isDark) document.body.classList.add('light');
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+    setTexts();
+  </script></body>
+</html>
