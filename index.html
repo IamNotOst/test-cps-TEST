@@ -6,14 +6,14 @@
   <title>CPS Tester</title>
   <style>
     :root {
-      --bg-light: #fefefe;
-      --bg-dark: #1c1c1e;
+      --bg-light: #f9f9f9;
+      --bg-dark: #000000;
       --text-light: #000;
       --text-dark: #fff;
       --accent-light: #0a84ff;
       --accent-dark: #64d2ff;
       --container-bg-light: #ffffffcc;
-      --container-bg-dark: #2c2c2e;
+      --container-bg-dark: #1c1c1e;
       --btn-bg-light: #e5e5ea;
       --btn-bg-dark: #3a3a3c;
     }
@@ -47,9 +47,9 @@
       background-color: var(--container-bg-light);
       border-radius: 30px;
       padding: 24px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
       text-align: center;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(16px);
       transition: background-color 0.3s;
     }
 
@@ -88,25 +88,25 @@
 
     h1 {
       margin-bottom: 10px;
-      font-size: 26px;
-      font-weight: 700;
+      font-size: 28px;
+      font-weight: 800;
     }
 
     #timer {
       margin-bottom: 16px;
-      font-size: 16px;
+      font-size: 18px;
       color: inherit;
     }
 
     #clickBtn {
       background-color: var(--accent-light);
       color: white;
-      font-size: 22px;
-      padding: 18px;
+      font-size: 24px;
+      padding: 20px;
       width: 100%;
       border: none;
       border-radius: 20px;
-      margin: 18px 0;
+      margin: 20px 0;
       transition: background-color 0.3s;
     }
 
@@ -125,8 +125,8 @@
     #startBtn, #shareBtn {
       background-color: #30d158;
       color: white;
-      font-size: 16px;
-      padding: 14px;
+      font-size: 18px;
+      padding: 16px;
       border: none;
       border-radius: 20px;
       width: 100%;
@@ -140,23 +140,23 @@
 
     #score {
       margin-top: 10px;
-      font-size: 18px;
-      font-weight: 500;
+      font-size: 20px;
+      font-weight: 600;
     }
 
     #result {
-      margin-top: 16px;
+      margin-top: 18px;
       white-space: pre-line;
-      font-size: 16px;
+      font-size: 18px;
     }
 
     .switcher {
-      margin-top: 16px;
+      margin-top: 18px;
     }
 
     .switcher input {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       font-size: 16px;
       border-radius: 14px;
       border: 1px solid #ccc;
@@ -203,13 +203,58 @@
   </style>
 </head>
 <body>
-  <!-- Body stays the same -->
+  <div class="top-bar">
+    <button id="themeToggle">Тёмная тема</button>
+    <button id="langToggle">EN</button>
+  </div>
+  <button id="topBtn">🏆 Топ 10</button>
+
+  <div class="container">
+    <h1>CPS Тестер</h1>
+    <div id="timer">0 сек</div>
+    <button id="clickBtn" disabled>Жми!</button>
+    <button id="startBtn">Начать</button>
+    <button id="shareBtn" class="hidden">Поделиться</button>
+    <div id="score"></div>
+    <div id="result"></div>
+    <div class="switcher">
+      <input type="number" id="timeInput" placeholder="Введите секунды (1-60)">
+    </div>
+  </div>
+
+  <div class="modal" id="topModal"></div>
+
   <script>
-    // ...
+    const themeToggle = document.getElementById('themeToggle');
+    const langToggle = document.getElementById('langToggle');
+    const shareBtn = document.getElementById('shareBtn');
+    const topBtn = document.getElementById('topBtn');
+    const topModal = document.getElementById('topModal');
+    const clickBtn = document.getElementById('clickBtn');
+    const startBtn = document.getElementById('startBtn');
+    const timerDisplay = document.getElementById('timer');
+    const timeInput = document.getElementById('timeInput');
+    const resultDisplay = document.getElementById('result');
+    const scoreDisplay = document.getElementById('score');
+    let score = 0;
+    let selectedTime = 0;
+    let language = navigator.language.startsWith('ru') ? 'ru' : 'en';
+
+    const updateLangToggleText = () => {
+      langToggle.textContent = language === 'ru' ? 'EN' : 'RU';
+    };
+
     themeToggle.addEventListener('click', () => {
       document.body.classList.toggle('dark');
       themeToggle.textContent = document.body.classList.contains('dark') ? 'Светлая тема' : 'Тёмная тема';
     });
+
+    langToggle.addEventListener('click', () => {
+      language = language === 'ru' ? 'en' : 'ru';
+      updateLangToggleText();
+    });
+
+    updateLangToggleText();
 
     shareBtn.addEventListener('click', () => {
       const cps = (score / selectedTime).toFixed(3);
@@ -218,6 +263,60 @@
         : `Wow! I clicked ${score} times in ${selectedTime} sec! That's ${cps}cps🤯\nCan you beat me? Try it here:\nhttps://t.me/TestCpsRobot/Start`;
       Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=https://t.me/TestCpsRobot/Start&text=${encodeURIComponent(message)}`);
     });
+
+    topBtn.addEventListener('click', () => {
+      topModal.innerHTML = `
+        <h2>🏆 Топ 10 игроков</h2>
+        <div class="user-entry" onclick="window.open('https://t.me/username1')">
+          <img src="avatar1.jpg" alt="avatar">
+          <div class="user-info">
+            <strong>@username1</strong>
+            <span>ID: 123456</span>
+          </div>
+        </div>
+        <!-- Другие игроки -->
+      `;
+      topModal.classList.add('visible');
+    });
+
+    function validateTimeInput(value) {
+      const seconds = Number(value);
+      if (isNaN(seconds) || seconds < 1 || seconds > 60) {
+        alert(language === 'ru' ? 'Введите число от 1 до 60 секунд.' : 'Please enter a number between 1 and 60 seconds.');
+        return false;
+      }
+      return true;
+    }
+
+    startBtn.addEventListener('click', () => {
+      const time = timeInput.value;
+      if (!validateTimeInput(time)) return;
+      selectedTime = Number(time);
+      score = 0;
+      scoreDisplay.textContent = '';
+      resultDisplay.textContent = '';
+      clickBtn.disabled = false;
+      shareBtn.classList.add('hidden');
+
+      let remaining = selectedTime;
+      timerDisplay.textContent = `${remaining} сек`;
+      const interval = setInterval(() => {
+        remaining--;
+        timerDisplay.textContent = `${remaining} сек`;
+        if (remaining <= 0) {
+          clearInterval(interval);
+          clickBtn.disabled = true;
+          const cps = (score / selectedTime).toFixed(3);
+          resultDisplay.textContent = `Ты нажал ${score} раз за ${selectedTime} сек.\nТвой CPS: ${cps}`;
+          shareBtn.classList.remove('hidden');
+        }
+      }, 1000);
+    });
+
+    clickBtn.addEventListener('click', () => {
+      score++;
+      scoreDisplay.textContent = `Счёт: ${score}`;
+    });
   </script>
 </body>
-</html>
+  </html>
