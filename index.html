@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CPS Tester</title>
   <style>
     :root {
@@ -36,7 +36,7 @@
       transition: background-color 0.3s, color 0.3s;
     }
 
-    body.dark {
+    html.dark, body.dark {
       background-color: var(--bg-dark);
       color: var(--text-dark);
     }
@@ -200,6 +200,24 @@
       display: flex;
       flex-direction: column;
     }
+
+    .hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff3b30;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 16px;
+      font-size: 14px;
+      display: none;
+      z-index: 1000;
+    }
+
+    .hint.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -221,6 +239,7 @@
   </div>
 
   <div class="modal" id="topModal"></div>
+  <div class="hint" id="hintBox"></div>
 
   <script>
     const themeToggle = document.getElementById('themeToggle');
@@ -233,13 +252,61 @@
     const timeInput = document.getElementById('timeInput');
     const resultDisplay = document.getElementById('result');
     const scoreDisplay = document.getElementById('score');
+    const hintBox = document.getElementById('hintBox');
+
     let score = 0;
     let selectedTime = 0;
+    let timerInterval = null;
     let language = navigator.language.startsWith('ru') ? 'ru' : 'en';
+
+    function showHint(message) {
+      hintBox.textContent = message;
+      hintBox.classList.add('show');
+      setTimeout(() => hintBox.classList.remove('show'), 3000);
+    }
 
     themeToggle.addEventListener('click', () => {
       document.body.classList.toggle('dark');
+      document.documentElement.classList.toggle('dark');
       themeToggle.textContent = document.body.classList.contains('dark') ? 'Светлая тема' : 'Тёмная тема';
+    });
+
+    startBtn.addEventListener('click', () => {
+      const time = timeInput.value;
+      if (isNaN(time) || time < 1 || time > 60) {
+        showHint(language === 'ru' ? 'Укажите от 1 до 60 секунд' : 'Enter 1–60 seconds');
+        return;
+      }
+
+      if (timerInterval) clearInterval(timerInterval);
+
+      selectedTime = Number(time);
+      score = 0;
+      scoreDisplay.textContent = '';
+      resultDisplay.textContent = '';
+      clickBtn.disabled = false;
+      shareBtn.classList.add('hidden');
+
+      let remaining = selectedTime;
+      timerDisplay.textContent = `${remaining} сек`;
+
+      timerInterval = setInterval(() => {
+        remaining--;
+        timerDisplay.textContent = `${remaining} сек`;
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          clickBtn.disabled = true;
+          const cps = (score / selectedTime).toFixed(3);
+          resultDisplay.textContent = `Ты нажал ${score} раз за ${selectedTime} сек.\nТвой CPS: ${cps}`;
+          shareBtn.classList.remove('hidden');
+          timeInput.value = ''; // очищаем поле
+        }
+      }, 1000);
+    });
+
+    clickBtn.addEventListener('click', () => {
+      score++;
+      scoreDisplay.textContent = `Счёт: ${score}`;
     });
 
     shareBtn.addEventListener('click', () => {
@@ -250,7 +317,7 @@
       Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=https://t.me/TestCpsRobot/Start&text=${encodeURIComponent(message)}`);
     });
 
-    topBtn.addEventListener('click', () => {
+    topBtn?.addEventListener('click', () => {
       topModal.innerHTML = `
         <h2>🏆 Топ 10 игроков</h2>
         <div class="user-entry" onclick="window.open('https://t.me/username1')">
@@ -260,48 +327,8 @@
             <span>ID: 123456</span>
           </div>
         </div>
-        <!-- Другие игроки -->
       `;
       topModal.classList.add('visible');
-    });
-
-    function validateTimeInput(value) {
-      const seconds = Number(value);
-      if (isNaN(seconds) || seconds < 1 || seconds > 60) {
-        alert(language === 'ru' ? 'Введите число от 1 до 60 секунд.' : 'Please enter a number between 1 and 60 seconds.');
-        return false;
-      }
-      return true;
-    }
-
-    startBtn.addEventListener('click', () => {
-      const time = timeInput.value;
-      if (!validateTimeInput(time)) return;
-      selectedTime = Number(time);
-      score = 0;
-      scoreDisplay.textContent = '';
-      resultDisplay.textContent = '';
-      clickBtn.disabled = false;
-      shareBtn.classList.add('hidden');
-
-      let remaining = selectedTime;
-      timerDisplay.textContent = `${remaining} сек`;
-      const interval = setInterval(() => {
-        remaining--;
-        timerDisplay.textContent = `${remaining} сек`;
-        if (remaining <= 0) {
-          clearInterval(interval);
-          clickBtn.disabled = true;
-          const cps = (score / selectedTime).toFixed(3);
-          resultDisplay.textContent = `Ты нажал ${score} раз за ${selectedTime} сек.\nТвой CPS: ${cps}`;
-          shareBtn.classList.remove('hidden');
-        }
-      }, 1000);
-    });
-
-    clickBtn.addEventListener('click', () => {
-      score++;
-      scoreDisplay.textContent = `Счёт: ${score}`;
     });
   </script>
 </body>
