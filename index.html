@@ -6,14 +6,14 @@
   <title>CPS Tester</title>
   <style>
     :root {
-      --bg-light: #f9f9f9;
-      --bg-dark: #000000;
+      --bg-light: #fefefe;
+      --bg-dark: #1c1c1e;
       --text-light: #000;
       --text-dark: #fff;
       --accent-light: #0a84ff;
       --accent-dark: #64d2ff;
       --container-bg-light: #ffffffcc;
-      --container-bg-dark: #1c1c1e;
+      --container-bg-dark: #2c2c2e;
       --btn-bg-light: #e5e5ea;
       --btn-bg-dark: #3a3a3c;
     }
@@ -47,9 +47,9 @@
       background-color: var(--container-bg-light);
       border-radius: 30px;
       padding: 24px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
       text-align: center;
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(12px);
       transition: background-color 0.3s;
     }
 
@@ -205,7 +205,6 @@
 <body>
   <div class="top-bar">
     <button id="themeToggle">Тёмная тема</button>
-    <button id="langToggle">EN</button>
   </div>
   <button id="topBtn">🏆 Топ 10</button>
 
@@ -226,7 +225,6 @@
 
   <script>
     const themeToggle = document.getElementById('themeToggle');
-    const langToggle = document.getElementById('langToggle');
     const shareBtn = document.getElementById('shareBtn');
     const topBtn = document.getElementById('topBtn');
     const topModal = document.getElementById('topModal');
@@ -240,21 +238,10 @@
     let selectedTime = 0;
     let language = navigator.language.startsWith('ru') ? 'ru' : 'en';
 
-    const updateLangToggleText = () => {
-      langToggle.textContent = language === 'ru' ? 'EN' : 'RU';
-    };
-
     themeToggle.addEventListener('click', () => {
       document.body.classList.toggle('dark');
       themeToggle.textContent = document.body.classList.contains('dark') ? 'Светлая тема' : 'Тёмная тема';
     });
-
-    langToggle.addEventListener('click', () => {
-      language = language === 'ru' ? 'en' : 'ru';
-      updateLangToggleText();
-    });
-
-    updateLangToggleText();
 
     shareBtn.addEventListener('click', () => {
       const cps = (score / selectedTime).toFixed(3);
@@ -319,4 +306,4 @@
     });
   </script>
 </body>
-  </html>
+</html>
